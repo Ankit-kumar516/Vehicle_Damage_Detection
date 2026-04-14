@@ -1,6 +1,7 @@
 # Python cache
 __pycache__/
 *.py[cod]
+*.pyc
 
 # Virtual environments
 .venv/
@@ -10,7 +11,14 @@ venv/
 # Local temp files
 temp_file.jpg
 *.tmp
+*.pkl
+*.cache
+
+# Streamlit cache
+.streamlit/secrets.toml
+.streamlit/.cache
 
 # OS/editor noise
 .DS_Store
 .vscode/
+.idea/

@@ -3,6 +3,7 @@ from torch import nn
 from torchvision import models, transforms
 from PIL import Image
 from pathlib import Path
+import streamlit as st
 
 
 # =========================
@@ -67,6 +68,7 @@ class CarClassifierResNet(nn.Module):
 # =========================
 # LOAD MODEL ONCE
 # =========================
+@st.cache_resource
 def _load_model():
     global trained_model
 
@@ -96,6 +98,7 @@ def _load_model():
 # =========================
 # PREDICT FUNCTION
 # =========================
+@st.cache_data
 def predict(image):
     model = _load_model()
 
