@@ -2,6 +2,16 @@ import streamlit as st
 from PIL import Image
 from model_helper import predict
 
+
+def to_percent(value):
+    # Supports both 0-1 and 0-100 model outputs.
+    return value * 100 if value <= 1 else value
+
+
+def to_progress(value):
+    percent = to_percent(value)
+    return max(0.0, min(1.0, percent / 100.0))
+
 st.set_page_config(
     page_title="Vehicle Damage Detector",
     page_icon="🚗",
@@ -172,15 +182,15 @@ if uploaded_file:
             st.markdown(f'<div class="metric-value">{result["label"]}</div>', unsafe_allow_html=True)
             st.write("")
             st.markdown('<div class="metric-title">Model Confidence</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="metric-value" style="color: var(--good);">{result["confidence"] * 100:.2f}%</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="metric-value" style="color: var(--good);">{to_percent(result["confidence"]):.2f}%</div>', unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
             st.write("")
             st.subheader("Class Probabilities")
 
             ranked = sorted(result["probabilities"].items(), key=lambda item: item[1], reverse=True)
             for cls_name, prob in ranked:
-                st.write(f"{cls_name}: {prob * 100:.2f}%")
-                st.progress(float(prob))
+                st.write(f"{cls_name}: {to_percent(prob):.2f}%")
+                st.progress(to_progress(prob))
 
     except Exception as exc:
         st.error("Prediction failed. Please verify the model file, dependencies, and uploaded image format.")
