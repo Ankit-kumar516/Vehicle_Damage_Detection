@@ -45,7 +45,9 @@ class CarClassifierResNet(nn.Module):
     def __init__(self, num_classes=6):
         super().__init__()
 
-        self.model = models.resnet50(weights='DEFAULT')
+        # Do not require network download for ImageNet weights at runtime.
+        # The trained checkpoint below provides the learned weights.
+        self.model = models.resnet50(weights=None)
 
         # Freeze base layers
         for param in self.model.parameters():
@@ -98,7 +100,6 @@ def _load_model():
 # =========================
 # PREDICT FUNCTION
 # =========================
-@st.cache_data
 def predict(image):
     model = _load_model()
 
