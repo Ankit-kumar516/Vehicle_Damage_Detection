@@ -3,7 +3,7 @@ from torch import nn
 from torchvision import models, transforms
 from PIL import Image
 from pathlib import Path
-import streamlit as st
+from functools import lru_cache
 
 
 # =========================
@@ -70,7 +70,7 @@ class CarClassifierResNet(nn.Module):
 # =========================
 # LOAD MODEL ONCE
 # =========================
-@st.cache_resource
+@lru_cache(maxsize=1)
 def _load_model():
     global trained_model
 
@@ -84,10 +84,12 @@ def _load_model():
 
     model = CarClassifierResNet(num_classes=len(class_names))
 
-    state_dict = torch.load(
-        MODEL_PATH,
-        map_location=DEVICE
-    )
+    try:
+        state_dict = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True)
+    except TypeError:
+        state_dict = torch.load(MODEL_PATH, map_location=DEVICE)
+    except Exception:
+        state_dict = torch.load(MODEL_PATH, map_location=DEVICE)
 
     model.load_state_dict(state_dict)
     model.to(DEVICE)
