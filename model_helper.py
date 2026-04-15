@@ -6,9 +6,6 @@ from pathlib import Path
 from functools import lru_cache
 
 
-# =========================
-# CONFIG
-# =========================
 class_names = [
     'Front Breakage',
     'Front Crushed',
@@ -22,12 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "model" / "saved_model.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-trained_model = None
 
-
-# =========================
-# IMAGE TRANSFORM
-# =========================
 IMAGE_TRANSFORM = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -38,26 +30,17 @@ IMAGE_TRANSFORM = transforms.Compose([
 ])
 
 
-# =========================
-# MODEL CLASS
-# =========================
 class CarClassifierResNet(nn.Module):
     def __init__(self, num_classes=6):
         super().__init__()
-
-        # Do not require network download for ImageNet weights at runtime.
-        # The trained checkpoint below provides the learned weights.
         self.model = models.resnet50(weights=None)
 
-        # Freeze base layers
         for param in self.model.parameters():
             param.requires_grad = False
 
-        # Unfreeze last block
         for param in self.model.layer4.parameters():
             param.requires_grad = True
 
-        # Replace FC layer
         self.model.fc = nn.Sequential(
             nn.Dropout(0.2),
             nn.Linear(self.model.fc.in_features, num_classes)
@@ -67,20 +50,10 @@ class CarClassifierResNet(nn.Module):
         return self.model(x)
 
 
-# =========================
-# LOAD MODEL ONCE
-# =========================
 @lru_cache(maxsize=1)
 def _load_model():
-    global trained_model
-
-    if trained_model is not None:
-        return trained_model
-
     if not MODEL_PATH.exists():
-        raise FileNotFoundError(
-            f"❌ Model file not found at: {MODEL_PATH}"
-        )
+        raise FileNotFoundError(f"Model file not found at: {MODEL_PATH}")
 
     model = CarClassifierResNet(num_classes=len(class_names))
 
@@ -94,14 +67,9 @@ def _load_model():
     model.load_state_dict(state_dict)
     model.to(DEVICE)
     model.eval()
-
-    trained_model = model
-    return trained_model
+    return model
 
 
-# =========================
-# PREDICT FUNCTION
-# =========================
 def predict(image):
     model = _load_model()
 
@@ -110,15 +78,12 @@ def predict(image):
     elif isinstance(image, Image.Image):
         image = image.convert("RGB")
     else:
-        raise TypeError(
-            "image must be a file path or PIL.Image.Image"
-        )
+        raise TypeError("image must be a file path or PIL.Image.Image")
 
     image_tensor = IMAGE_TRANSFORM(image).unsqueeze(0).to(DEVICE)
 
     with torch.no_grad():
         output = model(image_tensor)
-
         probabilities = torch.softmax(output, dim=1).squeeze(0)
         confidence, predicted_class = torch.max(probabilities, 0)
 
