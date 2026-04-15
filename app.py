@@ -171,7 +171,7 @@ if uploaded_file:
         image = Image.open(uploaded_file).convert("RGB")
 
         with left:
-            st.image(image, caption="Uploaded Image", use_container_width=True)
+            st.image(image, caption="Uploaded Image", use_column_width=True)
 
         with right:
             with st.spinner("Analyzing image..."):
