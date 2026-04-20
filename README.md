@@ -1,4 +1,4 @@
-# Vehicle Damage Detection App
+# Car Damage Detection App
 
 This app lets you upload a car image and predicts the likely damage class.
 
